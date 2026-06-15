@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Algo | HYPE-E</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: radial-gradient(circle at 10% 20%, rgb(14, 17, 30) 0%, rgb(25, 28, 41) 90%);
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
+        .neon-text {
+            text-shadow: 0 0 10px rgba(96, 165, 250, 0.7);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+
+    <div class="max-w-4xl w-full grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <div class="glass-panel p-6 flex flex-col items-center text-center col-span-1 shadow-2xl">
+            <svg class="w-32 h-32 mb-4" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="20" y="30" width="60" height="40" rx="10" fill="#1e293b" stroke="#38bdf8" stroke-width="3"/>
+                <circle cx="35" cy="50" r="8" fill="#0ea5e9">
+                    <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="65" cy="50" r="8" fill="#0ea5e9">
+                    <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />
+                </circle>
+                <path d="M40 70 h20" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+                <path d="M50 30 v-15 m-5 -5 h10" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <h2 class="text-2xl font-bold text-sky-400 neon-text">HYPE-E</h2>
+            <p class="text-sm text-slate-400 mt-2">Agente Quantitativo Autônomo</p>
+            <div class="mt-4 px-4 py-2 bg-sky-900/30 text-sky-300 rounded-full text-xs font-mono tracking-widest border border-sky-500/30">
+                STATUS: ONLINE
+            </div>
+        </div>
+
+        <div class="col-span-1 md:col-span-2 flex flex-col gap-6">
+            
+            <div class="glass-panel p-6 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-sky-400"></div>
+                <h3 class="text-sm uppercase tracking-wider text-slate-400 mb-1">Decisão Estratégica</h3>
+                <div class="flex justify-between items-end">
+                    <div>
+                        <p id="ticker-ativo" class="text-4xl font-extrabold text-white">CARREGANDO...</p>
+                        <p id="nome-jogo" class="text-md text-sky-200 mt-1">Sincronizando com a IA</p>
+                    </div>
+                    <div id="badge-decisao" class="px-6 py-2 rounded-lg font-bold text-lg bg-slate-800 text-slate-300 border border-slate-600">
+                        ...
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+                <div class="glass-panel p-6 shadow-2xl">
+                    <h3 class="text-sm uppercase tracking-wider text-slate-400 mb-2">Performance (PnL)</h3>
+                    <p id="valor-pnl" class="text-3xl font-bold text-white">--</p>
+                </div>
+                <div class="glass-panel p-6 shadow-2xl">
+                    <h3 class="text-sm uppercase tracking-wider text-slate-400 mb-2">Motivo da Decisão</h3>
+                    <p id="motivo-ia" class="text-sm text-slate-300 leading-relaxed">
+                        Aguardando leitura do mercado global...
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function conectarComRobo() {
+            try {
+                document.getElementById('nome-jogo').innerText = "Analisando mercado (Pode levar 5 segundos)...";
+                
+                // Conecta com o Python
+                const resposta = await fetch('http://127.0.0.1:5000/api/analise');
+                const dados = await resposta.json();
+
+                // Atualiza a tela
+                document.getElementById('ticker-ativo').innerText = dados.ticker;
+                document.getElementById('nome-jogo').innerText = dados.jogo;
+                document.getElementById('motivo-ia').innerText = dados.motivo;
+                
+                // Configura as cores do Lucro/Prejuízo
+                const pnlElement = document.getElementById('valor-pnl');
+                pnlElement.innerText = dados.lucro_prejuizo;
+                pnlElement.className = "text-3xl font-bold text-slate-300"; // Cor neutra
+
+                // Configura as cores da Decisão
+                const badgeElement = document.getElementById('badge-decisao');
+                badgeElement.innerText = dados.decisao;
+                
+                if(dados.decisao === "COMPRAR") {
+                    badgeElement.className = "px-6 py-2 rounded-lg font-bold text-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]";
+                    pnlElement.className = "text-3xl font-bold text-emerald-400";
+                } else if(dados.decisao === "VENDER") {
+                    badgeElement.className = "px-6 py-2 rounded-lg font-bold text-lg bg-rose-500/20 text-rose-400 border border-rose-500/50 shadow-[0_0_15px_rgba(244,63,94,0.3)]";
+                    pnlElement.className = "text-3xl font-bold text-rose-400";
+                } else {
+                    // Para o estado de ESPERAR (Amarelo)
+                    badgeElement.className = "px-6 py-2 rounded-lg font-bold text-lg bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.3)]";
+                }
+
+            } catch (erro) {
+                console.error("Erro ao conectar:", erro);
+                document.getElementById('nome-jogo').innerText = "Erro. Verifique se o Python está rodando.";
+            }
+        }
+
+        // Executa apenas uma vez ao carregar a página
+        conectarComRobo();
+    </script>
+</body>
+</html>
